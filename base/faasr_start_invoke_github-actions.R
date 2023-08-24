@@ -123,7 +123,7 @@ for (ghpackage in ghpackages){
 
 r_files <- list.files(pattern="\\.R$", recursive=TRUE, full.names=TRUE)
 for (rfile in r_files){
-    if (rfile != "./faasr_start_invoke_openwhisk_aws-lambda.R" && rfile != "./faasr_start_invoke_github-actions.R") {
+    if (rfile != "./faasr_start_invoke_openwhisk_aws-lambda.R" && rfile != "./faasr_start_invoke_github-actions.R" && rfile != "./R_packages.R") {
 	  source(rfile)
 	}
 }
