@@ -1,4 +1,4 @@
-FROM faasr/base-tidyverse
+FROM faasr/base-tidyverse:$FAASR_TAG
 
 RUN chmod -R 755 /action
 
