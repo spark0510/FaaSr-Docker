@@ -3,6 +3,7 @@ name: Build and push Docker image
 on: workflow_dispatch
 
 env:
+  TIDYVERSE_VERSION: 4.3.1
   FAASR_VERSION: 0.0.0.3
   TAG_SUFFIX: dev
 
@@ -21,7 +22,7 @@ jobs:
         run: |
           cd base
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+          docker build -t base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg TIDYVERSE_TAG=${{ env.TIDYVERSE_VERSION }} .
       - name: Push base-tidyverse Docker image
         run: |
           docker tag base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
@@ -30,7 +31,7 @@ jobs:
         run: |
           cd openwhisk
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+          docker build -t openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
       - name: Push openwhisk-tidyverse Docker image
         run: |
           docker tag openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
@@ -39,7 +40,7 @@ jobs:
         run: |
           cd github-actions
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+          docker build -t github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
       - name: Push github-actions-tidyverse Docker image
         run: |
           docker tag github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
