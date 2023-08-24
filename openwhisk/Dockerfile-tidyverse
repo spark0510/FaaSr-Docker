@@ -1,3 +1,4 @@
+ARG FAASR_TAG
 FROM faasr/base-tidyverse:$FAASR_TAG
 
 CMD ["/bin/bash","-c","cd actionProxy && python3 actionproxy.py"]
