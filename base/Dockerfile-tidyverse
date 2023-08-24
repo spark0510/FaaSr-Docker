@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM rocker/tidyverse:4.3.1 AS build
+FROM rocker/tidyverse:$TIDYVERSE_TAG AS build
 
 # Install apt packages
 COPY apt-packages.txt /tmp/
