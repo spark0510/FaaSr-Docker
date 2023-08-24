@@ -3,7 +3,7 @@ name: Build and push Docker image
 on: workflow_dispatch
 
 env:
-  FAASR_VERSION: 0.0.0.2
+  FAASR_VERSION: 0.0.0.3
   TAG_SUFFIX: dev
 
 jobs:
