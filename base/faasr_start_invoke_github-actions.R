@@ -99,7 +99,7 @@ faasr_source <- replace_values(.faasr, secrets)
 .faasr <- toJSON(faasr_source, auto_unbox = TRUE)
 actionname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$Actionname
 
-gits <- faasr_source$FunctionGitRepo[[actionname]]
+gits <- faasr_source$FunctionInvoke
 if (length(gits)==0){NULL} else{
 for (file in gits){
 	command <- paste("git clone --depth=1",file)
@@ -107,14 +107,14 @@ for (file in gits){
 	}
 }
 
-packages <- faasr_source$FunctionCRANPackage[[actionname]]
+packages <- faasr_source$FunctionInvoke
 if (length(packages)==0){NULL} else{
 for (package in packages){
 	install.packages(package)
 	}
 }
 
-ghpackages <- faasr_source$FunctionGitHubPackage[[actionname]]
+ghpackages <- faasr_source$FunctionInvoke
 if (length(ghpackages)==0){NULL} else{
 for (ghpackage in ghpackages){
 	githubinstall("ghpackage")
