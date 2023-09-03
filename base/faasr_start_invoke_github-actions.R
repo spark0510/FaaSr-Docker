@@ -73,9 +73,6 @@ get_github <- function(token, path){
 }
 
 
-
-
-
 get_github_raw <- function(token, path=NULL) {
   # GitHub username and repo
   if (is.null(path)){
@@ -130,7 +127,7 @@ secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
 
 
-.faasr <- fromJSON(get_github_raw(secrets))
+.faasr <- fromJSON(get_github_raw(token))
 
 .faasr$InvocationID <- Sys.getenv("INPUT_ID")
 .faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
@@ -149,8 +146,13 @@ funcname <- faasr_source$FunctionInvoke
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
   for (path in gits){
-    get_github(token, path)
-  }
+    file_name <- basename(path)
+    if (grepl("\\.", file_name)){
+      content <- get_github_raw(token, path)
+      eval(parse(text=content))
+    }else{
+      get_github(token, path)
+    }
 }
 	
 packages <- faasr_source$FunctionCRANPackage[[[funcname]]
