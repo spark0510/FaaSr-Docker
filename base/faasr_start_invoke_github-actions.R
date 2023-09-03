@@ -66,6 +66,7 @@ get_github <- function(token, path){
       cat("exec.R: success get payload from github repo\n")
       lists <- untar(tar_name, list=TRUE)
       untar(tar_name, file=paste0(lists[1],path))
+      unlink(tar_name, force=TRUE)
     }else{
       print(paste("Error:", http_status(response1)$message))
       stop()
