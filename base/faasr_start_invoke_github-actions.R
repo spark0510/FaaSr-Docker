@@ -147,7 +147,7 @@ gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
   for (path in gits){
     file_name <- basename(path)
-    if (grepl("\\.", file_name)){
+    if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
       content <- get_github_raw(token, path)
       eval(parse(text=content))
     }else{
