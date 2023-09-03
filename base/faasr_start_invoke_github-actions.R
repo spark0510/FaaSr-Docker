@@ -83,20 +83,20 @@ get_payload <- function(secrets) {
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 
 
-faasr <- get_payload(secrets)
+.faasr <- get_payload(secrets)
 
-faasr$InvocationID <- Sys.getenv("INPUT_ID")
-faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
-faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
+.faasr$InvocationID <- Sys.getenv("INPUT_ID")
+.faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
+.faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
 #cat("exec.R: faasr-invocationID is: ", faasr$InvocationID, "\n")
 #cat("exec.R: faasr-FunctionInvoke is: ", faasr$FunctionInvoke, "\n")
 
 # Replace secrets to faasr
 #cat("exec.R: will update user payload\n")
-faasr_source <- replace_values(faasr, secrets)
+faasr_source <- replace_values(.faasr, secrets)
 
 # back to json formate
-faasr <- toJSON(faasr_source, auto_unbox = TRUE)
+.faasr <- toJSON(faasr_source, auto_unbox = TRUE)
 actionname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$Actionname
 
 gits <- faasr_source$FunctionGitRepo[[actionname]]
@@ -128,5 +128,5 @@ for (rfile in r_files){
 	}
 }
 
-faasr_start(faasr)
+faasr_start(.faasr)
 
