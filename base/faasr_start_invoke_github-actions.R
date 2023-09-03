@@ -35,10 +35,55 @@ replace_values <- function(user_info, secrets) {
 
 # REST API get faasr payload json file from repo
 
-get_payload <- function(secrets) {
+get_github <- function(token, path){
+  parts <- strsplit(path, "/")[[1]]
+  if (length(parts) < 2) {
+    stop("PAYLOAD_REPO should contains at least three parts.")
+  }
+  
+  username <- parts[1]
+  reponame <- parts[2]
+  repo <- paste0(username,"/",reponame)
+  if (length(parts) > 2) {
+    path <- paste(parts[3: length(parts)], collapse = "/")
+  } else {
+    path <- NULL
+  }
+  pat <- token
+  url <- paste0("https://api.github.com/repos/", repo, "/tarball")
+  tar_name <- paste0(reponame,".tar.gz")
+  response1 <- GET(
+    url = url,
+    encode = "json",
+    add_headers(
+      Authorization = paste("token", pat),
+      Accept = "application/vnd.github.v3+json",
+      "X-GitHub-Api-Version" = "2022-11-28"
+    ),
+    write_disk(tar_name)
+  )
+  if (status_code(response1) == "200") {
+      cat("exec.R: success get payload from github repo\n")
+      lists <- untar(tar_name, list=TRUE)
+      untar(tar_name, file=paste0(lists[1],path))
+    }else{
+      print(paste("Error:", http_status(response1)$message))
+      stop()
+    }
+}
+
+
+
+
+
+get_github_raw <- function(token, path=NULL) {
   # GitHub username and repo
-  #cat("exec.R: will get payload from another repo\n")
-  github_repo <- Sys.getenv("PAYLOAD_REPO")
+  if (is.null(path)){
+    github_repo <- Sys.getenv("PAYLOAD_REPO")
+  } else{
+    github_repo <- path
+  }
+  
   parts <- strsplit(github_repo, "/")[[1]]
   if (length(parts) < 3) {
     stop("PAYLOAD_REPO should contains at least three parts.")
@@ -69,10 +114,10 @@ get_payload <- function(secrets) {
     
     # The content of the file is in the 'content' field and is base64 encoded
     file_content <- rawToChar(base64enc::base64decode(content$content))
-    
-    faasr <- fromJSON(file_content)
-    return (faasr)
-    
+    return(file_content)
+
+    #faasr <- fromJSON(file_content)
+    #return (faasr)
     
   } else {
     print(paste("Error:", http_status(response1)$message))
@@ -80,10 +125,12 @@ get_payload <- function(secrets) {
   }
 }
 
+
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
+token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
 
 
-.faasr <- get_payload(secrets)
+.faasr <- fromJSON(get_github_raw(secrets))
 
 .faasr$InvocationID <- Sys.getenv("INPUT_ID")
 .faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
@@ -97,29 +144,30 @@ faasr_source <- replace_values(.faasr, secrets)
 
 # back to json formate
 .faasr <- toJSON(faasr_source, auto_unbox = TRUE)
-actionname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$Actionname
+funcname <- faasr_source$FunctionInvoke
 
-gits <- faasr_source$FunctionInvoke
+gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
-for (file in gits){
-	command <- paste("git clone --depth=1",file)
-	system(command, ignore.stderr=TRUE)
-	}
+  for (path in gits){
+    get_github(token, path)
+  }
 }
-
-packages <- faasr_source$FunctionInvoke
+	
+packages <- faasr_source$FunctionCRANPackage[[[funcname]]
 if (length(packages)==0){NULL} else{
 for (package in packages){
 	install.packages(package)
 	}
 }
 
-ghpackages <- faasr_source$FunctionInvoke
+ghpackages <- faasr_source$FunctionGitHubPackage[[funcname]]
 if (length(ghpackages)==0){NULL} else{
 for (ghpackage in ghpackages){
-	githubinstall("ghpackage")
+	#githubinstall(ghpackage)
+	devtools::install_github(ghpackage)
 	}
 }
+
 
 r_files <- list.files(pattern="\\.R$", recursive=TRUE, full.names=TRUE)
 for (rfile in r_files){
