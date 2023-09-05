@@ -138,7 +138,10 @@ token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
 
 # Replace secrets to faasr
 #cat("exec.R: will update user payload\n")
-faasr_source <- replace_values(.faasr, secrets)
+faasr_source <- .faasr
+faasr_source$ComputeServers <- replace_values(faasr_source$ComputeServers, secrets$computeservers)
+faasr_source$DataStores <- replace_values(faasr_source$DataStores, secrets$datastores)
+
 
 # back to json formate
 .faasr <- toJSON(faasr_source, auto_unbox = TRUE)
