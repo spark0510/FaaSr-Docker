@@ -90,7 +90,7 @@ get_github_raw <- function(token, path=NULL) {
   repo <- parts[2]
   
   path <- paste(parts[3: length(parts)], collapse = "/")
-  pat <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
+  pat <- token
   url <- paste0("https://api.github.com/repos/", username, "/", repo, "/contents/", path)
 
   # Send the POST request
