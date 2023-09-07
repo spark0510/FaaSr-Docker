@@ -6,4 +6,3 @@ remotes::install_version('jsonvalidate', version='1.3.2', repos='https://cloud.R
 remotes::install_version('RCurl', version='1.98-1.12', repos='https://cloud.R-project.org')
 remotes::install_version('httr', version='1.4.6', repos='https://cloud.R-project.org')
 remotes::install_version('uuid', version='1.1-0', repos='https://cloud.R-project.org')
-remotes::install_version('githubinstall', version='0.2.2', repos='https://cloud.R-project.org')
