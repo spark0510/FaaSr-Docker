@@ -9,7 +9,6 @@
 
 library("httr")
 library("jsonlite")
-library("githubinstall")
 library("FaaSr")
 
 # Recursive function to replace values
@@ -150,13 +149,19 @@ funcname <- faasr_source$FunctionInvoke
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
   for (path in gits){
-    file_name <- basename(path)
-    if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
-      content <- get_github_raw(token, path)
-      eval(parse(text=content))
-    }else{
-      get_github(token, path)
+    if (endsWith(path, ".git")) {
+      command <- paste("git clone --depth=1",file)
+      system(command, ignore.stderr=TRUE)
+    } else {
+      file_name <- basename(path)
+      if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
+        content <- get_github_raw(token, path)
+        eval(parse(text=content))
+      }else{
+        get_github(token, path)
+      }
     }
+  }
 }
 	
 packages <- faasr_source$FunctionCRANPackage[[[funcname]]
@@ -169,8 +174,7 @@ for (package in packages){
 ghpackages <- faasr_source$FunctionGitHubPackage[[funcname]]
 if (length(ghpackages)==0){NULL} else{
 for (ghpackage in ghpackages){
-	#githubinstall(ghpackage)
-	devtools::install_github(ghpackage)
+	devtools::install_github(ghpackage, force=TRUE)
 	}
 }
 
