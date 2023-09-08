@@ -36,7 +36,8 @@ replace_values <- function(user_info, secrets) {
 get_github <- function(token, path){
   parts <- strsplit(path, "/")[[1]]
   if (length(parts) < 2) {
-    stop("PAYLOAD_REPO should contains at least three parts.")
+    cat("{\"get_github_raw\":\"github path should contains at least two parts\"}")
+    stop()
   }
   
   username <- parts[1]
@@ -61,14 +62,16 @@ get_github <- function(token, path){
     write_disk(tar_name)
   )
   if (status_code(response1) == "200") {
-      cat("exec.R: success get payload from github repo\n")
-      lists <- untar(tar_name, list=TRUE)
-      untar(tar_name, file=paste0(lists[1],path))
-      unlink(tar_name, force=TRUE)
-    }else{
-      print(paste("Error:", http_status(response1)$message))
-      stop()
-    }
+    cat("{\"get_github\":\"Successful\"}")
+    lists <- untar(tar_name, list=TRUE)
+    untar(tar_name, file=paste0(lists[1],path))
+    unlink(tar_name, force=TRUE)
+  } else if (status_code(response1)=="401"){
+    cat("{\"get_github\":\"Bad credentials - check github token\"}")
+    stop()
+  } else {
+    cat("{\"get_github\":\"Not found - check github repo: ",username,"/",repo,"\"}")
+    stop()
 }
 
 
@@ -82,7 +85,8 @@ get_github_raw <- function(token, path=NULL) {
   
   parts <- strsplit(github_repo, "/")[[1]]
   if (length(parts) < 3) {
-    stop("PAYLOAD_REPO should contains at least three parts.")
+    cat("{\"get_github_raw\":\"github path should contains at least three parts\"}")
+    stop()
   }
   username <- parts[1]
   repo <- parts[2]
@@ -104,7 +108,7 @@ get_github_raw <- function(token, path=NULL) {
 
   # Check if the request was successful
   if (status_code(response1) == "200") {
-    cat("exec.R: success get payload from github repo\n")
+    cat("{\"get_github_raw\":\"Successful\"}")
     # Parse the response content
     content <- content(response1, "parsed")
     
@@ -115,10 +119,12 @@ get_github_raw <- function(token, path=NULL) {
     #faasr <- fromJSON(file_content)
     #return (faasr)
     
-  } else {
-    print(paste("Error:", http_status(response1)$message))
+  } else if (status_code(response1)=="401"){
+    cat("{\"get_github_raw\":\"Bad credentials - check github token\"}")
     stop()
-  }
+  } else {
+    cat("{\"get_github_raw\":\"Not found - check github repo: ",username,"/",repo,"\"}")
+    stop()
 }
 
 .faasr <- commandArgs(TRUE)
@@ -133,7 +139,7 @@ if (length(gits)==0){NULL} else{
           command <- paste("git clone --depth=1",path)
           check <- system(command, ignore.stderr=TRUE)
 	  if (check!=0){
-	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
+	  cat(paste0("{\"faasr_start_invoke_openwhisk_aws-lambda\":\"no repo found, check repository: ",path,"\"}\n"))
 	  stop()
 	  }
         } else {
@@ -152,17 +158,17 @@ if (length(gits)==0){NULL} else{
 	command <- paste("git clone --depth=1", path)
 	check <- system(command, ignore.stderr=TRUE)
 	if (check!=0){
-	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
+	  cat(paste0("{\"faasr_start_invoke_openwhisk_aws-lambda\":\"no repo found, check repository: ",path,"\"}\n"))
 	  stop()
 	}
       } else {
 	parts <- strsplit(path, "/")[[1]]
 	repo <- paste0(parts[1],"/",parts[2])
-	cat(paste0("{\"faasr_start_invoke_github-actions\":\"no token found, try cloning a git from \"https://github.com/",repo,".git\"}\n"))
+	cat(paste0("{\"faasr_start_invoke_openwhisk_aws-lambda\":\"no token found, try cloning a git from \"https://github.com/",repo,".git\"}\n"))
 	command <- paste0("git clone --depth=1 https://github.com/",repo,".git")
 	check <- system(command, ignore.stderr=TRUE)
 	if (check!=0){
-	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
+	  cat(paste0("{\"faasr_start_invoke_openwhisk_aws-lambda\":\"no repo found, check repository: ",repo,"\"}\n"))
 	  stop()
 	}
       }
