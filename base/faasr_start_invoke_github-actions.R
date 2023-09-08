@@ -164,7 +164,7 @@ if (length(gits)==0){NULL} else{
   }
 }
 	
-packages <- faasr_source$FunctionCRANPackage[[[funcname]]
+packages <- faasr_source$FunctionCRANPackage[[funcname]]
 if (length(packages)==0){NULL} else{
 for (package in packages){
 	install.packages(package)
