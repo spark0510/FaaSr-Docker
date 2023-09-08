@@ -132,6 +132,13 @@ get_github_raw <- function(token, path=NULL) {
 .faasr <- commandArgs(TRUE)
 faasr_source <- fromJSON(.faasr)
 funcname <- faasr_source$FunctionInvoke
+token <- NULL
+for (name in names(faasr_source$ComputeServers)){
+  if (faasr_source$ComputeServers[[name]]$FaaSType=="GitHubActions"){
+    token <- faasr_source$ComputeServers[[name]]$Token
+    break
+  }
+}
 
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
