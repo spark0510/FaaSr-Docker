@@ -36,7 +36,7 @@ replace_values <- function(user_info, secrets) {
 get_github <- function(token, path){
   parts <- strsplit(path, "/")[[1]]
   if (length(parts) < 2) {
-    cat("{\"get_github_raw\":\"github path should contains at least two parts\"}")
+    cat("{\"get_github_raw\":\"github path should contain at least two parts\"}")
     stop()
   }
   
@@ -86,7 +86,7 @@ get_github_raw <- function(token, path=NULL) {
   
   parts <- strsplit(github_repo, "/")[[1]]
   if (length(parts) < 3) {
-    cat("{\"get_github_raw\":\"github path should contains at least three parts\"}")
+    cat("{\"get_github_raw\":\"github path should contain at least three parts\"}")
     stop()
   }
   username <- parts[1]
