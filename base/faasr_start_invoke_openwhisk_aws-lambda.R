@@ -11,10 +11,6 @@ library("jsonlite")
 library("httr")
 library("FaaSr")
 
-.faasr <- commandArgs(TRUE)
-faasr_source <- fromJSON(.faasr)
-funcname <- faasr_source$FunctionInvoke
-
 replace_values <- function(user_info, secrets) {
   
   for (name in names(user_info)) {
@@ -125,19 +121,50 @@ get_github_raw <- function(token, path=NULL) {
   }
 }
 
+.faasr <- commandArgs(TRUE)
+faasr_source <- fromJSON(.faasr)
+funcname <- faasr_source$FunctionInvoke
+
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
-  for (path in gits){
-    if (endsWith(path, ".git")) {
-      command <- paste("git clone --depth=1",path)
-      system(command, ignore.stderr=TRUE)
-    } else {
-      file_name <- basename(path)
-      if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
-        content <- get_github_raw(token, path)
-        eval(parse(text=content))
-      }else{
-        get_github(token, path)
+  if (!is.null(token)){
+      for (path in gits){
+        if (endsWith(path, ".git")) {
+          command <- paste("git clone --depth=1",path)
+          check <- system(command, ignore.stderr=TRUE)
+	  if (check!=0){
+	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
+	  stop()
+	  }
+        } else {
+          file_name <- basename(path)
+          if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
+            content <- get_github_raw(token, path)
+            eval(parse(text=content))
+          }else{
+            get_github(token, path)
+          }
+        }
+      }
+  } else {
+    for (path in gits){
+      if (endsWith(path, ".git")){
+	command <- paste("git clone --depth=1", path)
+	check <- system(command, ignore.stderr=TRUE)
+	if (check!=0){
+	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
+	  stop()
+	}
+      } else {
+	parts <- strsplit(path, "/")[[1]]
+	repo <- paste0(parts[1],"/",parts[2])
+	cat(paste0("{\"faasr_start_invoke_github-actions\":\"no token found, try cloning a git from \"https://github.com/",repo,".git\"}\n"))
+	command <- paste0("git clone --depth=1 https://github.com/",repo,".git")
+	check <- system(command, ignore.stderr=TRUE)
+	if (check!=0){
+	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
+	  stop()
+	}
       }
     }
   }
