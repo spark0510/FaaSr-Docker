@@ -72,6 +72,7 @@ get_github <- function(token, path){
   } else {
     cat("{\"get_github\":\"Not found - check github repo: ",username,"/",repo,"\"}")
     stop()
+  }
 }
 
 
@@ -125,6 +126,7 @@ get_github_raw <- function(token, path=NULL) {
   } else {
     cat("{\"get_github_raw\":\"Not found - check github repo: ",username,"/",repo,"\"}")
     stop()
+  }
 }
 
 .faasr <- commandArgs(TRUE)
