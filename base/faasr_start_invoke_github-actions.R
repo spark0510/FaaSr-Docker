@@ -150,7 +150,7 @@ gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
   for (path in gits){
     if (endsWith(path, ".git")) {
-      command <- paste("git clone --depth=1",file)
+      command <- paste("git clone --depth=1",path)
       system(command, ignore.stderr=TRUE)
     } else {
       file_name <- basename(path)
