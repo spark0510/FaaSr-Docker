@@ -15,7 +15,7 @@ library("FaaSr")
 replace_values <- function(user_info, secrets) {
   
   for (name in names(user_info)) {
-    if (name == "FunctionList") {
+    if (name != "ComputeServers" || name != "DataStores") {
       next
     }
     # If the value is a list, call this function recursively
@@ -146,9 +146,7 @@ token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
 # Replace secrets to faasr
 #cat("exec.R: will update user payload\n")
 faasr_source <- .faasr
-faasr_source$ComputeServers <- replace_values(faasr_source$ComputeServers, secrets$computeservers)
-faasr_source$DataStores <- replace_values(faasr_source$DataStores, secrets$datastores)
-
+faasr_source <- replace_values(faasr, secrets)
 
 # back to json formate
 .faasr <- toJSON(faasr_source, auto_unbox = TRUE)
