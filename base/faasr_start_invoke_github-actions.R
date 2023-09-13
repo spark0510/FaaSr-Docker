@@ -15,7 +15,7 @@ library("FaaSr")
 replace_values <- function(user_info, secrets) {
   
   for (name in names(user_info)) {
-    if (name != "ComputeServers" || name != "DataStores") {
+    if (name != "ComputeServers" && name != "DataStores") {
       next
     }
     # If the value is a list, call this function recursively
@@ -34,7 +34,7 @@ replace_values <- function(user_info, secrets) {
 
 # REST API get faasr payload json file from repo
 
-get_github <- function(token, path){
+get_github <- function(path){
   parts <- strsplit(path, "/")[[1]]
   if (length(parts) < 2) {
     cat("{\"get_github_raw\":\"github path should contain at least two parts\"}")
@@ -49,14 +49,12 @@ get_github <- function(token, path){
   } else {
     path <- NULL
   }
-  pat <- token
   url <- paste0("https://api.github.com/repos/", repo, "/tarball")
   tar_name <- paste0(reponame,".tar.gz")
   response1 <- GET(
     url = url,
     encode = "json",
     add_headers(
-      Authorization = paste("token", pat),
       Accept = "application/vnd.github.v3+json",
       "X-GitHub-Api-Version" = "2022-11-28"
     ),
@@ -77,7 +75,7 @@ get_github <- function(token, path){
 }
 
 
-get_github_raw <- function(token, path=NULL) {
+get_github_raw <- function(token=NULL, path=NULL) {
   # GitHub username and repo
   if (is.null(path)){
     github_repo <- Sys.getenv("PAYLOAD_REPO")
@@ -97,17 +95,27 @@ get_github_raw <- function(token, path=NULL) {
   pat <- token
   url <- paste0("https://api.github.com/repos/", username, "/", repo, "/contents/", path)
 
-  # Send the POST request
-  response1 <- GET(
-    url = url,
-    encode = "json",
-    add_headers(
-      Authorization = paste("token", pat),
-      Accept = "application/vnd.github.v3+json",
-      "X-GitHub-Api-Version" = "2022-11-28"
+  if (is.null(pat)){
+    response1 <- GET(
+      url = url,
+      encode = "json",
+      add_headers(
+        Accept = "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      )
     )
-  )
-
+  } else {
+  # Send the POST request
+    response1 <- GET(
+      url = url,
+      encode = "json",
+      add_headers(
+        Authorization = paste("token", pat),
+        Accept = "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      )
+    )
+  }
   # Check if the request was successful
   if (status_code(response1) == "200") {
     cat("{\"get_github_raw\":\"Successful\"}")
@@ -154,44 +162,21 @@ funcname <- faasr_source$FunctionInvoke
 
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
-  if (!is.null(token)){
-      for (path in gits){
-        if (endsWith(path, ".git")) {
-          command <- paste("git clone --depth=1",path)
-          check <- system(command, ignore.stderr=TRUE)
-	  if (check!=0){
-	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
-	  stop()
-	  }
-        } else {
-          file_name <- basename(path)
-          if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
-            content <- get_github_raw(token, path)
-            eval(parse(text=content))
-          }else{
-            get_github(token, path)
-          }
-        }
+  for (path in gits){
+    if (endsWith(path, ".git") && startsWith(path, "http")) {
+      command <- paste("git clone --depth=1",path)
+      check <- system(command, ignore.stderr=TRUE)
+      if (check!=0){
+	cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository url: ",repo,"\"}\n"))
+	stop()
       }
-  } else {
-    for (path in gits){
-      if (endsWith(path, ".git")){
-	command <- paste("git clone --depth=1", path)
-	check <- system(command, ignore.stderr=TRUE)
-	if (check!=0){
-	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
-	  stop()
-	}
-      } else {
-	parts <- strsplit(path, "/")[[1]]
-	repo <- paste0(parts[1],"/",parts[2])
-	cat(paste0("{\"faasr_start_invoke_github-actions\":\"no token found, try cloning a git from \"https://github.com/",repo,".git\"}\n"))
-	command <- paste0("git clone --depth=1 https://github.com/",repo,".git")
-	check <- system(command, ignore.stderr=TRUE)
-	if (check!=0){
-	  cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository: ",repo,"\"}\n"))
-	  stop()
-	}
+    } else {
+      file_name <- basename(path)
+      if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
+        content <- get_github_raw(path=path)
+        eval(parse(text=content))
+      }else{
+        get_github(path)
       }
     }
   }
