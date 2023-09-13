@@ -143,13 +143,6 @@ get_github_raw <- function(token=NULL, path=NULL) {
 faasr_source <- fromJSON(.faasr)
 funcname <- faasr_source$FunctionInvoke
 
-for (name in names(faasr_source$ComputeServers)){
-  if (faasr_source$ComputeServers[[name]]$FaaSType=="GitHubActions"){
-    token <- faasr_source$ComputeServers[[name]]$Token
-    break
-  }
-}
-
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
   for (path in gits){
