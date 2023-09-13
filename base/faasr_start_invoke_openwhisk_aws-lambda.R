@@ -14,7 +14,7 @@ library("FaaSr")
 replace_values <- function(user_info, secrets) {
   
   for (name in names(user_info)) {
-    if (name != "ComputeServers" && name != "DataStores") {
+    if (name == "FunctionList") {
       next
     }
     # If the value is a list, call this function recursively
