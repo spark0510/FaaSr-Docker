@@ -95,6 +95,7 @@ get_github_raw <- function(token=NULL, path=NULL) {
   pat <- token
   url <- paste0("https://api.github.com/repos/", username, "/", repo, "/contents/", path)
 
+  # Send the POST request
   if (is.null(pat)){
     response1 <- GET(
       url = url,
@@ -138,21 +139,16 @@ get_github_raw <- function(token=NULL, path=NULL) {
   }
 }
 
-
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
+.faasr <- fromJSON(get_github_raw(token=token))
 
-
-.faasr <- fromJSON(get_github_raw(token))
 
 .faasr$InvocationID <- Sys.getenv("INPUT_ID")
 .faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
 .faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
-#cat("exec.R: faasr-invocationID is: ", faasr$InvocationID, "\n")
-#cat("exec.R: faasr-FunctionInvoke is: ", faasr$FunctionInvoke, "\n")
 
 # Replace secrets to faasr
-#cat("exec.R: will update user payload\n")
 faasr_source <- .faasr
 faasr_source <- replace_values(faasr, secrets)
 
