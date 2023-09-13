@@ -9,7 +9,6 @@
 
 library("httr")
 library("jsonlite")
-library("githubinstall")
 library("FaaSr")
 
 # Recursive function to replace values
@@ -35,91 +34,163 @@ replace_values <- function(user_info, secrets) {
 
 # REST API get faasr payload json file from repo
 
-get_payload <- function(secrets) {
+get_github <- function(path){
+  parts <- strsplit(path, "/")[[1]]
+  if (length(parts) < 2) {
+    cat("{\"get_github_raw\":\"github path should contain at least two parts\"}\n")
+    stop()
+  }
+  
+  username <- parts[1]
+  reponame <- parts[2]
+  repo <- paste0(username,"/",reponame)
+  if (length(parts) > 2) {
+    path <- paste(parts[3: length(parts)], collapse = "/")
+  } else {
+    path <- NULL
+  }
+  url <- paste0("https://api.github.com/repos/", repo, "/tarball")
+  tar_name <- paste0(reponame,".tar.gz")
+  response1 <- GET(
+    url = url,
+    encode = "json",
+    add_headers(
+      Accept = "application/vnd.github.v3+json",
+      "X-GitHub-Api-Version" = "2022-11-28"
+    ),
+    write_disk(tar_name)
+  )
+  if (status_code(response1) == "200") {
+    cat("{\"get_github\":\"Successful\"}\n")
+    lists <- untar(tar_name, list=TRUE)
+    untar(tar_name, file=paste0(lists[1],path))
+    unlink(tar_name, force=TRUE)
+  } else if (status_code(response1)=="401"){
+    cat("{\"get_github\":\"Bad credentials - check github token\"}\n")
+    stop()
+  } else {
+    cat("{\"get_github\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
+    stop()
+  }
+}
+
+
+get_github_raw <- function(token=NULL, path=NULL) {
   # GitHub username and repo
-  #cat("exec.R: will get payload from another repo\n")
-  github_repo <- Sys.getenv("PAYLOAD_REPO")
+  if (is.null(path)){
+    github_repo <- Sys.getenv("PAYLOAD_REPO")
+  } else{
+    github_repo <- path
+  }
+  
   parts <- strsplit(github_repo, "/")[[1]]
   if (length(parts) < 3) {
-    stop("PAYLOAD_REPO should contains at least three parts.")
+    cat("{\"get_github_raw\":\"github path should contain at least three parts\"}\n")
+    stop()
   }
   username <- parts[1]
   repo <- parts[2]
   
   path <- paste(parts[3: length(parts)], collapse = "/")
-  pat <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
+  pat <- token
   url <- paste0("https://api.github.com/repos/", username, "/", repo, "/contents/", path)
 
   # Send the POST request
-  response1 <- GET(
-    url = url,
-    encode = "json",
-    add_headers(
-      Authorization = paste("token", pat),
-      Accept = "application/vnd.github.v3+json",
-      "X-GitHub-Api-Version" = "2022-11-28"
+  if (is.null(pat)){
+    response1 <- GET(
+      url = url,
+      encode = "json",
+      add_headers(
+        Accept = "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      )
     )
-  )
-
+  } else {
+  # Send the POST request
+    response1 <- GET(
+      url = url,
+      encode = "json",
+      add_headers(
+        Authorization = paste("token", pat),
+        Accept = "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      )
+    )
+  }
   # Check if the request was successful
   if (status_code(response1) == "200") {
-    cat("exec.R: success get payload from github repo\n")
+    cat("{\"get_github_raw\":\"Successful\"}\n")
     # Parse the response content
     content <- content(response1, "parsed")
     
     # The content of the file is in the 'content' field and is base64 encoded
     file_content <- rawToChar(base64enc::base64decode(content$content))
+    return(file_content)
+
+    #faasr <- fromJSON(file_content)
+    #return (faasr)
     
-    faasr <- fromJSON(file_content)
-    return (faasr)
-    
-    
+  } else if (status_code(response1)=="401"){
+    cat("{\"get_github_raw\":\"Bad credentials - check github token\"}\n")
+    stop()
   } else {
-    print(paste("Error:", http_status(response1)$message))
+    cat("{\"get_github_raw\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
     stop()
   }
 }
 
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
+token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
+.faasr <- fromJSON(get_github_raw(token=token))
 
 
-faasr <- get_payload(secrets)
-
-faasr$InvocationID <- Sys.getenv("INPUT_ID")
-faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
-faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
-#cat("exec.R: faasr-invocationID is: ", faasr$InvocationID, "\n")
-#cat("exec.R: faasr-FunctionInvoke is: ", faasr$FunctionInvoke, "\n")
+.faasr$InvocationID <- Sys.getenv("INPUT_ID")
+.faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
+.faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
 
 # Replace secrets to faasr
-#cat("exec.R: will update user payload\n")
-faasr_source <- replace_values(faasr, secrets)
+faasr_source <- replace_values(.faasr, secrets)
 
 # back to json formate
-faasr <- toJSON(faasr_source, auto_unbox = TRUE)
-actionname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$Actionname
+.faasr <- toJSON(faasr_source, auto_unbox = TRUE)
+funcname <- faasr_source$FunctionInvoke
 
-gits <- faasr_source$FunctionGitRepo[[actionname]]
+gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
-for (file in gits){
-	command <- paste("git clone --depth=1",file)
-	system(command, ignore.stderr=TRUE)
-	}
+  for (path in gits){
+    if (endsWith(path, ".git") && startsWith(path, "http")) {
+      command <- paste("git clone --depth=1",path)
+      check <- system(command, ignore.stderr=TRUE)
+      if (check!=0){
+	cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository url: ",repo,"\"}\n"))
+	stop()
+      }
+    } else {
+      file_name <- basename(path)
+      if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
+        content <- get_github_raw(path=path)
+        eval(parse(text=content))
+      }else{
+        get_github(path)
+      }
+    }
+  }
 }
-
-packages <- faasr_source$FunctionCRANPackage[[actionname]]
+	
+packages <- faasr_source$FunctionCRANPackage[[funcname]]
 if (length(packages)==0){NULL} else{
 for (package in packages){
 	install.packages(package)
 	}
 }
 
-ghpackages <- faasr_source$FunctionGitHubPackage[[actionname]]
+ghpackages <- faasr_source$FunctionGitHubPackage[[funcname]]
 if (length(ghpackages)==0){NULL} else{
 for (ghpackage in ghpackages){
-	githubinstall("ghpackage")
+	devtools::install_github(ghpackage, force=TRUE)
 	}
 }
+
 
 r_files <- list.files(pattern="\\.R$", recursive=TRUE, full.names=TRUE)
 for (rfile in r_files){
@@ -128,5 +199,5 @@ for (rfile in r_files){
 	}
 }
 
-faasr_start(faasr)
+faasr_start(.faasr)
 
