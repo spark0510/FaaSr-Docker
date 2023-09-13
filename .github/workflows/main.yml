@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 env:
   TIDYVERSE_VERSION: 4.3.1
-  FAASR_VERSION: 0.0.0.4
+  FAASR_VERSION: 0.0.0.5
   TAG_SUFFIX: dev
 
 jobs:
@@ -45,5 +45,14 @@ jobs:
         run: |
           docker tag github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+      - name: Build aws-lambda-tidyverse Docker image
+        run: |
+          cd aws-lambda
+          mv Dockerfile-tidyverse Dockerfile
+          docker build -t aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+      - name: Push aws-lambda-tidyverse Docker image
+        run: |
+          docker tag aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
 
           
