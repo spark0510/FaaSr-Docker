@@ -149,7 +149,6 @@ token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
 .faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
 
 # Replace secrets to faasr
-faasr_source <- .faasr
 faasr_source <- replace_values(.faasr, secrets)
 
 # back to json formate
