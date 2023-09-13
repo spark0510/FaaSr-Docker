@@ -37,7 +37,7 @@ replace_values <- function(user_info, secrets) {
 get_github <- function(path){
   parts <- strsplit(path, "/")[[1]]
   if (length(parts) < 2) {
-    cat("{\"get_github_raw\":\"github path should contain at least two parts\"}")
+    cat("{\"get_github_raw\":\"github path should contain at least two parts\"}\n")
     stop()
   }
   
@@ -61,15 +61,15 @@ get_github <- function(path){
     write_disk(tar_name)
   )
   if (status_code(response1) == "200") {
-    cat("{\"get_github\":\"Successful\"}")
+    cat("{\"get_github\":\"Successful\"}\n")
     lists <- untar(tar_name, list=TRUE)
     untar(tar_name, file=paste0(lists[1],path))
     unlink(tar_name, force=TRUE)
   } else if (status_code(response1)=="401"){
-    cat("{\"get_github\":\"Bad credentials - check github token\"}")
+    cat("{\"get_github\":\"Bad credentials - check github token\"}\n")
     stop()
   } else {
-    cat("{\"get_github\":\"Not found - check github repo: ",username,"/",repo,"\"}")
+    cat("{\"get_github\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
     stop()
   }
 }
@@ -85,7 +85,7 @@ get_github_raw <- function(token=NULL, path=NULL) {
   
   parts <- strsplit(github_repo, "/")[[1]]
   if (length(parts) < 3) {
-    cat("{\"get_github_raw\":\"github path should contain at least three parts\"}")
+    cat("{\"get_github_raw\":\"github path should contain at least three parts\"}\n")
     stop()
   }
   username <- parts[1]
@@ -119,7 +119,7 @@ get_github_raw <- function(token=NULL, path=NULL) {
   }
   # Check if the request was successful
   if (status_code(response1) == "200") {
-    cat("{\"get_github_raw\":\"Successful\"}")
+    cat("{\"get_github_raw\":\"Successful\"}\n")
     # Parse the response content
     content <- content(response1, "parsed")
     
@@ -131,10 +131,10 @@ get_github_raw <- function(token=NULL, path=NULL) {
     #return (faasr)
     
   } else if (status_code(response1)=="401"){
-    cat("{\"get_github_raw\":\"Bad credentials - check github token\"}")
+    cat("{\"get_github_raw\":\"Bad credentials - check github token\"}\n")
     stop()
   } else {
-    cat("{\"get_github_raw\":\"Not found - check github repo: ",username,"/",repo,"\"}")
+    cat("{\"get_github_raw\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
     stop()
   }
 }
