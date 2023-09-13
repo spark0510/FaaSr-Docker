@@ -150,7 +150,7 @@ token <- secrets[["PAYLOAD_GITHUB_TOKEN"]]
 
 # Replace secrets to faasr
 faasr_source <- .faasr
-faasr_source <- replace_values(faasr, secrets)
+faasr_source <- replace_values(.faasr, secrets)
 
 # back to json formate
 .faasr <- toJSON(faasr_source, auto_unbox = TRUE)
