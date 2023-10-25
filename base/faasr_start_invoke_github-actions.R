@@ -153,7 +153,7 @@ faasr_source <- replace_values(.faasr, secrets)
 
 # back to json formate
 .faasr <- toJSON(faasr_source, auto_unbox = TRUE)
-funcname <- faasr_source$FunctionInvoke
+funcname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$FunctionName
 
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
