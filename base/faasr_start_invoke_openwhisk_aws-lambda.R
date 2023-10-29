@@ -141,7 +141,7 @@ get_github_raw <- function(token=NULL, path=NULL) {
 
 .faasr <- commandArgs(TRUE)
 faasr_source <- fromJSON(.faasr)
-funcname <- faasr_source$FunctionInvoke
+funcname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$FunctionName
 
 gits <- faasr_source$FunctionGitRepo[[funcname]]
 if (length(gits)==0){NULL} else{
