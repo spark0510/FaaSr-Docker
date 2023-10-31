@@ -18,24 +18,24 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Pull openwhisk-tidyverse Docker image
         run: |
-          docker pull openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
       - name: Tag and push openwhisk-tidyverse Docker image
         run: |
-          docker tag openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:latest
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:latest
       - name: Pull github-actions-tidyverse Docker image
         run: |
-          docker pull github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
       - name: Tag and push openwhisk-tidyverse Docker image
         run: |
-          docker tag github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:latest
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:latest
       - name: Pull aws-lambda-tidyverse Docker image
         run: |
-          docker pull aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
       - name: Tag and push aws-lambda-tidyverse Docker image
         run: |
-          docker tag aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:latest
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:latest
 
           
