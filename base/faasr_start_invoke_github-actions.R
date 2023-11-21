@@ -199,5 +199,5 @@ for (rfile in r_files){
 	}
 }
 
-faasr_start(.faasr)
+FaaSr::faasr_start(.faasr)
 
