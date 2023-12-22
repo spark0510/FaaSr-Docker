@@ -17,7 +17,7 @@ library("FaaSr")
 faasr_get_github <- function(path){
   parts <- strsplit(path, "/")[[1]]
   if (length(parts) < 2) {
-    cat("{\"faasr_get_github\":\"github path should contain at least two parts\"}\n")
+    cat("{\"faasr_install_git_repo\":\"github path should contain at least two parts\"}\n")
     stop()
   }
   
@@ -41,15 +41,15 @@ faasr_get_github <- function(path){
     write_disk(tar_name)
   )
   if (status_code(response1) == "200") {
-    cat("{\"faasr_get_github\":\"Successful\"}\n")
+    cat("{\"faasr_install_git_repo\":\"Successful\"}\n")
     lists <- untar(tar_name, list=TRUE)
     untar(tar_name, file=paste0(lists[1],path))
     unlink(tar_name, force=TRUE)
   } else if (status_code(response1)=="401"){
-    cat("{\"faasr_get_github\":\"Bad credentials - check github token\"}\n")
+    cat("{\"faasr_install_git_repo\":\"Bad credentials - check github token\"}\n")
     stop()
   } else {
-    cat("{\"faasr_get_github\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
+    cat("{\"faasr_install_git_repo\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
     stop()
   }
 }
@@ -65,7 +65,7 @@ faasr_get_github_raw <- function(token=NULL, path=NULL) {
   
   parts <- strsplit(github_repo, "/")[[1]]
   if (length(parts) < 3) {
-    cat("{\"faasr_get_github_raw\":\"github path should contain at least three parts\"}\n")
+    cat("{\"faasr_install_git_repo\":\"github path should contain at least three parts\"}\n")
     stop()
   }
   username <- parts[1]
@@ -99,22 +99,19 @@ faasr_get_github_raw <- function(token=NULL, path=NULL) {
   }
   # Check if the request was successful
   if (status_code(response1) == "200") {
-    cat("{\"faasr_get_github_raw\":\"Successful\"}\n")
+    cat("{\"faasr_install_git_repo\":\"Successful\"}\n")
     # Parse the response content
     content <- content(response1, "parsed")
     
     # The content of the file is in the 'content' field and is base64 encoded
     file_content <- rawToChar(base64enc::base64decode(content$content))
     return(file_content)
-
-    #faasr <- fromJSON(file_content)
-    #return (faasr)
     
   } else if (status_code(response1)=="401"){
-    cat("{\"faasr_get_github_raw\":\"Bad credentials - check github token\"}\n")
+    cat("{\"faasr_install_git_repo\":\"Bad credentials - check github token\"}\n")
     stop()
   } else {
-    cat("{\"faasr_get_github_raw\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
+    cat("{\"faasr_install_git_repo\":\"Not found - check github repo: ",username,"/",repo,"\"}\n")
     stop()
   }
 }
@@ -126,18 +123,21 @@ faasr_install_git_repo <- function(gits){
   } else{
     for (path in gits){
       if (endsWith(path, ".git") && startsWith(path, "http")) {
+	cat(paste0("{\"faasr_install_git_repo\":\"get git repo files: ",path,"\"}\n"))
         command <- paste("git clone --depth=1",path)
         check <- system(command, ignore.stderr=TRUE)
         if (check!=0){
-	        cat(paste0("{\"faasr_start_invoke_github-actions\":\"no repo found, check repository url: ",repo,"\"}\n"))
+	        cat(paste0("{\"faasr_install_git_repo\":\"no repo found, check repository url: ",path,"\"}\n"))
 	        stop()
         }
       } else {
         file_name <- basename(path)
         if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
-          content <- faasr_get_github_raw(path=path)
+          cat(paste0("{\"faasr_install_git_repo\":\"get git repo files: ",path,"\"}\n"))
+	  content <- faasr_get_github_raw(path=path)
           eval(parse(text=content))
         }else{
+	  cat(paste0("{\"faasr_install_git_repo\":\"get git repo files: ",path,"\"}\n"))
           faasr_get_github(path)
         }
       }
@@ -151,6 +151,7 @@ faasr_install_cran <- function(packages, lib_path=NULL){
     cat("{\"faasr_install_cran\":\"No CRAN package dependency\"}\n")
   } else{
     for (package in packages){
+	    cat("{\"faasr_install_cran\":\"Install CRAN package",package,"\"}\n")
 	    install.packages(package, lib=lib_path)
 	  }
   }
@@ -162,6 +163,7 @@ faasr_install_git_package <- function(ghpackages, lib_path=NULL){
     cat("{\"faasr_install_git_package\":\"No git package dependency\"}\n")
   } else{
     for (ghpackage in ghpackages){
+	    cat("{\"faasr_install_git_package\":\"Install Github package",ghpackage,"\"}\n")
 	    withr::with_libpaths(new=lib_path, devtools::install_github(ghpackage, force=TRUE))
 	  }
   }
@@ -172,9 +174,11 @@ faasr_source_r_files <- function(){
   r_files <- list.files(pattern="\\.R$", recursive=TRUE, full.names=TRUE)
   for (rfile in r_files){
     if (rfile != "./faasr_start_invoke_helper.R" && rfile != "./faasr_start_invoke_openwhisk.R" && rfile != "./faasr_start_invoke_aws-lambda.R" && rfile != "./faasr_start_invoke_github-actions.R" && rfile != "./R_packages.R") {
-	    tryCatch(expr=source(rfile), error=function(e){
-    		print(e)
-	    })
+      cat("{\"faasr_source_r_files\":\"Source R file",rfile,"\"}\n")
+      tryCatch(expr=source(rfile), error=function(e){
+        cat("{\"faasr_source_r_files\":\"R file",rfile,"has following source error:",e,"\"}\n")
+	}
+      )
     }
   }
 }
