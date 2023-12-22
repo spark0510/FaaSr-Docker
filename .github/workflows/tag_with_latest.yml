@@ -23,7 +23,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: FaaSr
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -43,11 +43,11 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:latest
       - name: Pull github-actions-tidyverse Github Container registry image
         run: |
-          docker pull ghcr.io/FaaSr/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
+          docker pull ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
       - name: Tag and push github-actions-tidyverse Github Container registry image
         run: |
-          docker tag ghcr.io/FaaSr/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/FaaSr/github-actions-tidyverse:latest
-          docker push ghcr.io/FaaSr/github-actions-tidyverse:latest
+          docker tag ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:latest
+          docker push ghcr.io/${{ github.actor }}/github-actions-tidyverse:latest
       - name: Pull aws-lambda-tidyverse AWS ECR image
         run: |
           docker pull ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
