@@ -13,6 +13,27 @@ library("jsonlite")
 library("FaaSr")
 
 # REST API get faasr payload json file from repo
+faasr_get_github_clone <- function(path){
+  pattern <- "([^/:]+/[^/:]+)\\.git$"
+  repo_match <- regmatches(path, regexpr(pattern, path))
+  
+  if (length(repo_match) > 0) {
+    repo_name <- sub("\\.git$", "", repo_match)
+  } else {
+    repo_name <- paste0(sample(c(letters, 0:9), 8, replace = TRUE), collapse = "")
+  }  
+
+  if (dir.exists(repo_name)){
+    unlink(repo_name, recursive=TRUE)
+  }
+	      
+  command <- paste("git clone --depth=1",path, repo_name)
+  check <- system(command, ignore.stderr=TRUE)
+  if (check!=0){
+    cat(paste0("{\"faasr_install_git_repo\":\"no repo found, check repository url: ",path,"\"}\n"))
+    stop()
+  }
+}
 
 faasr_get_github <- function(path){
   parts <- strsplit(path, "/")[[1]]
@@ -38,7 +59,7 @@ faasr_get_github <- function(path){
       Accept = "application/vnd.github.v3+json",
       "X-GitHub-Api-Version" = "2022-11-28"
     ),
-    write_disk(tar_name)
+    write_disk(tar_name, overwrite=TRUE)
   )
   if (status_code(response1) == "200") {
     cat("{\"faasr_install_git_repo\":\"Successful\"}\n")
@@ -122,14 +143,9 @@ faasr_install_git_repo <- function(gits){
     cat("{\"faasr_install_git_repo\":\"No git repo dependency\"}\n")
   } else{
     for (path in gits){
-      if (endsWith(path, ".git") && startsWith(path, "http")) {
+      if (endsWith(path, ".git") || startsWith(path, "https://") || startsWith(path, "git@")) {
 	cat(paste0("{\"faasr_install_git_repo\":\"get git repo files: ",path,"\"}\n"))
-        command <- paste("git clone --depth=1",path)
-        check <- system(command, ignore.stderr=TRUE)
-        if (check!=0){
-	        cat(paste0("{\"faasr_install_git_repo\":\"no repo found, check repository url: ",path,"\"}\n"))
-	        stop()
-        }
+	faasr_get_github_clone(path)
       } else {
         file_name <- basename(path)
         if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
