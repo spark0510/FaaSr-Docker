@@ -2,12 +2,9 @@
 ARG TIDYVERSE_TAG
 FROM rocker/tidyverse:$TIDYVERSE_TAG AS build
 
+# Get arguments
 ARG FAASR_TAG
 ARG FAASR_INSTALL_REPO
-
-# Install FaaSr
-RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); install_github(paste0(args[1],'@',args[2]),force=TRUE)" $FAASR_INSTALL_REPO $FAASR_TAG
-
 
 # Install apt packages
 COPY apt-packages.txt /tmp/
