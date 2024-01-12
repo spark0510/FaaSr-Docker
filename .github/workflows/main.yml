@@ -34,7 +34,7 @@ jobs:
         run: |
           cd base
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg TIDYVERSE_TAG=${{ env.TIDYVERSE_VERSION }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }}.
+          docker build -t base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg TIDYVERSE_TAG=${{ env.TIDYVERSE_VERSION }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
       - name: Push base-tidyverse Docker image
         run: |
           docker tag base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
