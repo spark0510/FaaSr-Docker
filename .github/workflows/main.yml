@@ -5,7 +5,10 @@ on: workflow_dispatch
 env:
   TIDYVERSE_VERSION: 4.3.1
   FAASR_VERSION: 1.0.3.0
+  FAASR_TAG: 1.0.4.0
+  FAASR_INSTALL_REPO: FaaSr/FaaSr-package
   TAG_SUFFIX: dev
+  AWS_REGION: us-east-1
 
 jobs:
   build-and-push:
@@ -18,11 +21,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Build base-tidyverse Docker image
         run: |
           cd base
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg TIDYVERSE_TAG=${{ env.TIDYVERSE_VERSION }} .
+          docker build -t base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg TIDYVERSE_TAG=${{ env.TIDYVERSE_VERSION }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }}.
       - name: Push base-tidyverse Docker image
         run: |
           docker tag base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/base-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
@@ -45,14 +57,12 @@ jobs:
         run: |
           docker tag github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-      - name: Build aws-lambda-tidyverse Docker image
+      - name: Build aws-lambda-tidyverse Container image
         run: |
           cd aws-lambda
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
-      - name: Push aws-lambda-tidyverse Docker image
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+      - name: Push aws-lambda-tidyverse Container image
         run: |
-          docker tag aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
 
-          
