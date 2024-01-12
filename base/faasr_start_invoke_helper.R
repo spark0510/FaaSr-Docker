@@ -151,7 +151,7 @@ faasr_install_git_repo <- function(gits){
         if (endsWith(file_name, ".R") || endsWith(file_name, ".r")){
           cat(paste0("{\"faasr_install_git_repo\":\"get git repo files: ",path,"\"}\n"))
 	  content <- faasr_get_github_raw(path=path)
-          eval(parse(text=content))
+          eval(parse(text=content), envir = globalenv())
         }else{
 	  cat(paste0("{\"faasr_install_git_repo\":\"get git repo files: ",path,"\"}\n"))
           faasr_get_github(path)
