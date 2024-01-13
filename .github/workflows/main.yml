@@ -10,6 +10,8 @@ env:
   TAG_SUFFIX: dev
   AWS_REGION: us-east-1
 
+permissions: write-all
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -21,6 +23,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to the Github Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -48,15 +56,15 @@ jobs:
         run: |
           docker tag openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-      - name: Build github-actions-tidyverse Docker image
+      - name: Build github-actions-tidyverse Container registry image
         run: |
           cd github-actions
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
-      - name: Push github-actions-tidyverse Docker image
+          docker build -t ghcr.io/${{ github.repository_owner }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+      - name: Push github-actions-tidyverse Container registry image
         run: |
-          docker tag github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker tag ghcr.io/${{ github.repository_owner }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker push ghcr.io/${{ github.repository_owner }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
       - name: Build aws-lambda-tidyverse Container image
         run: |
           cd aws-lambda
