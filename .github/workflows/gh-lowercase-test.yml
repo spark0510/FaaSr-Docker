@@ -1,0 +1,35 @@
+name: Build and push Docker image
+
+on: workflow_dispatch
+
+env:
+  TIDYVERSE_VERSION: 4.3.1
+  FAASR_VERSION: 1.0.4.0
+  FAASR_TAG: 1.0.4.0
+  FAASR_INSTALL_REPO: FaaSr/FaaSr-package
+  TAG_SUFFIX: dev
+  AWS_REGION: us-east-1
+
+permissions: write-all
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Login to the Github Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: faasr
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build github-actions-tidyverse Container registry image
+        run: |
+          cd github-actions
+          mv Dockerfile-tidyverse Dockerfile
+          docker build -t ghcr.io/faasr/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+      - name: Push github-actions-tidyverse Container registry image
+        run: |
+          docker tag ghcr.io/faasr/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker push ghcr.io/faasr/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
