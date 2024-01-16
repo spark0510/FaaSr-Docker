@@ -4,9 +4,10 @@ on: workflow_dispatch
 
 env:
   TIDYVERSE_VERSION: 4.3.1
-  FAASR_VERSION: 1.0.4.0
-  FAASR_TAG: 1.0.4.0
+  FAASR_VERSION: 1.0.5.0
+  FAASR_TAG: 1.0.5.0
   FAASR_INSTALL_REPO: FaaSr/FaaSr-package
+  GHCR_IO_REPO: faasr
   TAG_SUFFIX: dev
   AWS_REGION: us-east-1
 
@@ -27,7 +28,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ env.GHCR_IO_REPO }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,11 +61,11 @@ jobs:
         run: |
           cd github-actions
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t ghcr.io/${{ github.repository_owner }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
+          docker build -t ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} .
       - name: Push github-actions-tidyverse Container registry image
         run: |
-          docker tag ghcr.io/${{ github.repository_owner }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-          docker push ghcr.io/${{ github.repository_owner }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker tag ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker push ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
       - name: Build aws-lambda-tidyverse Container image
         run: |
           cd aws-lambda
