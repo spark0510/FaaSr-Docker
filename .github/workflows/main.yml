@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 env:
   FAASR_VERSION: 1.0.0.0
-  FAASR_TAG: 1.0.8
+  FAASR_TAG: 1.0.9
   FAASR_INSTALL_REPO: spark0510/FaaSr-package
   GHCR_IO_REPO: spark0510
   TAG_SUFFIX: test
