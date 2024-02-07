@@ -2,10 +2,6 @@
 ARG TIDYVERSE_TAG
 FROM rocker/tidyverse:$TIDYVERSE_TAG AS build
 
-# Get arguments
-ARG FAASR_TAG
-ARG FAASR_INSTALL_REPO
-
 # Install apt packages
 COPY apt-packages.txt /tmp/
 RUN apt update && \
@@ -59,9 +55,6 @@ RUN cp openwhisk-runtime-docker/core/actionProxy/owplatform/openwhisk.py /action
 # Copy FaaSr invocation code
 COPY faasr_start_invoke_openwhisk.R /action/exec
 RUN chmod +x /action/exec
-
-# Install FaaSr
-RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); install_github(paste0(args[1],'@',args[2]),force=TRUE)" $FAASR_INSTALL_REPO $FAASR_TAG
 
 # Add json schema
 ADD https://raw.githubusercontent.com/FaaSr/FaaSr-package/main/schema/FaaSr.schema.json /action/
