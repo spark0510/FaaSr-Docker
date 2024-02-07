@@ -1,5 +1,5 @@
 ARG FAASR_VERSION
-FROM faasr/base-tidyverse:$FAASR_VERSION
+FROM spark0510/base-tidyverse:$FAASR_VERSION
 
 # Get arguments
 ARG FAASR_TAG
