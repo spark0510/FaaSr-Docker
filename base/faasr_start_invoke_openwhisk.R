@@ -14,24 +14,24 @@ source("faasr_start_invoke_helper.R")
 
 # get arguments from stdin
 .faasr <- commandArgs(TRUE)
-faasr_source <- fromJSON(.faasr)
-funcname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$FunctionName
-
-# get files from Git repository
-gits <- faasr_source$FunctionGitRepo[[funcname]]
-faasr_install_git_repo(gits)
-
-# install CRAN packages
-packages <- faasr_source$FunctionCRANPackage[[funcname]]
-faasr_install_cran(packages)
-
-# install Git packages
-ghpackages <- faasr_source$FunctionGitHubPackage[[funcname]]
-faasr_install_git_package(ghpackages)
-
-# source R files
-faasr_source_r_files()
 
 # start FaaSr
-FaaSr::faasr_start(.faasr)
+.faasr <- FaaSr::faasr_start(.faasr)
 
+# Download the dependencies
+funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
+faasr_dependency_install(.faasr, funcname)
+
+# Execute User function
+FaaSr::faasr_run_user_function(.faasr)
+
+# Trigger the next functions
+FaaSr::faasr_trigger(.faasr)
+
+# Leave logs
+msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
+cat(msg_1)
+result <- faasr_log(msg_1)
+msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
+cat(msg_2)
+result <- faasr_log(msg_2)

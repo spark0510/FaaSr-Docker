@@ -12,30 +12,30 @@ library("httr")
 library("FaaSr")
 source("faasr_start_invoke_helper.R")
 
-# set a new library path "/tmp"
+# get arguments from stdin
+.faasr <- commandArgs(TRUE)
+
+# start FaaSr
+.faasr <- FaaSr::faasr_start(.faasr)
+
+# set a new library path "/tmp": Lambda specific
 .libPaths( c(.libPaths(), "/tmp") )
 new_lib <- "/tmp"
 
-# get arguments from stdin
-.faasr <- commandArgs(TRUE)
-faasr_source <- fromJSON(.faasr)
-funcname <- faasr_source$FunctionList[[faasr_source$FunctionInvoke]]$FunctionName
+# Download the dependencies
+funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
+faasr_dependency_install(.faasr, funcname, new_lib=new_lib)
 
-# get files from Git repository
-gits <- faasr_source$FunctionGitRepo[[funcname]]
-faasr_install_git_repo(gits)
+# Execute User function
+FaaSr::faasr_run_user_function(.faasr)
 
-# install CRAN packages
-packages <- faasr_source$FunctionCRANPackage[[funcname]]
-faasr_install_cran(packages, lib_path=new_lib)
+# Trigger the next functions
+FaaSr::faasr_trigger(.faasr)
 
-# install Git packages
-ghpackages <- faasr_source$FunctionGitHubPackage[[funcname]]
-faasr_install_git_package(ghpackages, lib_path=new_lib)
-
-# source R files
-faasr_source_r_files()
-
-# start FaaSr
-FaaSr::faasr_start(.faasr)
-
+# Leave logs
+msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
+cat(msg_1)
+result <- faasr_log(msg_1)
+msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
+cat(msg_2)
+result <- faasr_log(msg_2)

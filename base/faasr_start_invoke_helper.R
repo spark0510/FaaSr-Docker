@@ -199,3 +199,19 @@ faasr_source_r_files <- function(){
   }
 }
 
+faasr_dependency_install <- function(faasr_source, funcname, new_lib=NULL){
+  # get files from Git repository
+  gits <- faasr_source$FunctionGitRepo[[funcname]]
+  faasr_install_git_repo(gits)
+
+  # install CRAN packages
+  packages <- faasr_source$FunctionCRANPackage[[funcname]]
+  faasr_install_cran(packages, lib_path=new_lib)
+
+  # install Git packages
+  ghpackages <- faasr_source$FunctionGitHubPackage[[funcname]]
+  faasr_install_git_package(ghpackages, lib_path=new_lib)
+
+  # source R files
+  faasr_source_r_files()
+}
