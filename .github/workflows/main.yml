@@ -1,13 +1,19 @@
-name: Build and push Each FaaS platform image
+name: Build and push Each FaaS platform-specific image
 
 on: workflow_dispatch
 
 env:
-  FAASR_VERSION: 1.1.0.0
-  FAASR_TAG: 1.1.0.0
+  # The base version (Rocker+dependences, FaaS-agnostic) to build from
+  FAASR_BASE_VERSION: 1.1.0.0
+  # The GitHub FaaSr tag to install from
+  FAASR_TAG: 1.1.0.1
+  # The GitHub FaaSr repo to install from
   FAASR_INSTALL_REPO: FaaSr/FaaSr-package
+  # Name of GH container registry to push image to
   GHCR_IO_REPO: faasr
+  # Suffix applied to versions
   TAG_SUFFIX: dev
+  # AWS region with container registry to push image to 
   AWS_REGION: us-east-1
 
 permissions: write-all
@@ -44,26 +50,26 @@ jobs:
         run: |
           cd openwhisk
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_VERSION=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
+          docker build -t openwhisk-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_VERSION=${{ env.FAASR_BASE_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
       - name: Push openwhisk-tidyverse Docker image
         run: |
-          docker tag openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker tag openwhisk-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }}
       - name: Build github-actions-tidyverse Container registry image
         run: |
           cd github-actions
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_VERSION=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
+          docker build -t ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_VERSION=${{ env.FAASR_BASE_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
       - name: Push github-actions-tidyverse Container registry image
         run: |
-          docker tag ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
-          docker push ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker tag ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ github.actor }}/github-actions-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }}
+          docker push ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }}
       - name: Build aws-lambda-tidyverse Container image
         run: |
           cd aws-lambda
           mv Dockerfile-tidyverse Dockerfile
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_VERSION=${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_VERSION=${{ env.FAASR_BASE_VERSION }}-${{ env.TAG_SUFFIX }} --build-arg FAASR_TAG=${{ env.FAASR_TAG }} --build-arg FAASR_INSTALL_REPO=${{ env.FAASR_INSTALL_REPO }} .
       - name: Push aws-lambda-tidyverse Container image
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_TAG }}-${{ env.TAG_SUFFIX }}
 
