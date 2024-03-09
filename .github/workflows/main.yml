@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 env:
   # The base version (Rocker+dependences, FaaS-agnostic) to build from
-  FAASR_BASE_VERSION: 1.1.1
+  FAASR_BASE_VERSION: 1.1.2
   # The GitHub FaaSr tag to install from
   FAASR_TAG: 1.1.2
   # The GitHub FaaSr repo to install from
