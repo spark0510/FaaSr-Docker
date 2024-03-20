@@ -1,4 +1,4 @@
-name: GitHub Actions Build+push FaaS platform-specific image
+name: github-actions -> GHCR
 
 on: 
   workflow_dispatch:

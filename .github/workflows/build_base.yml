@@ -1,4 +1,4 @@
-name: Build and push FaaSr base image to DockerHub
+name: base -> DockerHub
   # This action builds a base image for use in FaaSr
   # It requires you to have your DOCKERHUB_USERNAME and DOCKERHUB_TOKEN configured as secrets
   # The base image can be build from a Rocker- or Rocker-derived image input as BUILD_FROM e.g. rocker/tidyverse:4.3.1

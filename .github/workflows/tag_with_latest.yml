@@ -1,13 +1,35 @@
-name: Tag Docker image as latest
+name: Tag DockerHub, GHCR, ECR as latest
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      # IMAGE_NAME is the name of the FaaSr image to tag as latest - without the ta, and without FaaS-specific prefix!
+      # Example: tidyverse 
+      IMAGE_NAME:
+        description: 'name of the FaaSr image - without the tag, and without the FaaS-specific prefix (e.g. openwhisk-, github-actions)! e.g. tidyverse'
+        required: true
+        default: 'tidyverse'
+      # FAASR_VERSION is the FaaSr version tag to be used for this base FaaSr image
+      # Examples: 1.1.2, 1.3.1
+      FAASR_VERSION:
+        description: 'FaaSr version'
+        required: true 
+      GHCR_IO_REPO:
+        description: 'GitHub Container Repository (GHCR) to tag as latest'
+        required: true
+        default: 'faasr'
+      # AWS_REGION is the AWS ECR region to tag image
+      # Examples: us-east-1        
+      AWS_REGION:
+        description: 'AWS ECR region to tag as latest'
+        required: true
+        default: 'us-east-1'
 
 env:
-  TIDYVERSE_VERSION: 4.3.1
-  FAASR_VERSION: 1.1.2
-  TAG_SUFFIX: rel
-  GHCR_IO_REPO: faasr
-  AWS_REGION: us-east-1
+  GITHUB_ACTIONS_PREFIX : github-actions
+  OPENWHISK_PREFIX: openwhisk
+  AWS_LAMBDA_PREFIX: aws-lambda
+
 
 permissions: write-all
 
@@ -35,26 +57,26 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2  
-      - name: Pull openwhisk-tidyverse Docker image
+      - name: Pull openwhisk Dockerhub image
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
-      - name: Tag and push openwhisk-tidyverse Docker image
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.OPENWHISK_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }}
+      - name: Tag and push openwhisk Dockerhub image
         run: |
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/openwhisk-tidyverse:latest
-      - name: Pull github-actions-tidyverse Github Container registry image
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.OPENWHISK_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.OPENWHISK_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.OPENWHISK_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+      - name: Pull github-actions GHCR image
         run: |
-          docker pull ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
-      - name: Tag and push github-actions-tidyverse Github Container registry image
+          docker pull ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} 
+      - name: Tag and push hithub-actions GHCR image
         run: |
-          docker tag ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:latest
-          docker push ghcr.io/${{ env.GHCR_IO_REPO }}/github-actions-tidyverse:latest
-      - name: Pull aws-lambda-tidyverse AWS ECR image
+          docker tag ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+          docker push ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+      - name: Pull aws-lambda AWS ECR image
         run: |
-          docker pull ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} 
+          docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_LAMBDA_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} 
       - name: Tag and push aws-lambda-tidyverse AWS ECR image
         run: |
-          docker tag ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:${{ env.FAASR_VERSION }}-${{ env.TAG_SUFFIX }} ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:latest
-          docker push ${{ steps.login-ecr.outputs.registry }}/aws-lambda-tidyverse:latest
+          docker tag ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_LAMBDA_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_LAMBDA_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_LAMBDA_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
 
           

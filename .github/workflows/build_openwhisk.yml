@@ -1,4 +1,4 @@
-name: OpenWhisk Build+push FaaS platform-specific image
+name: openwhisk -> DockerHub
 
 on: 
   workflow_dispatch:
