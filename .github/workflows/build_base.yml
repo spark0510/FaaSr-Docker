@@ -1,0 +1,46 @@
+name: Build and push FaaSr base image to DockerHub
+  # This action builds a base image for use in FaaSr
+  # It requires you to have your DOCKERHUB_USERNAME and DOCKERHUB_TOKEN configured as secrets
+  # The base image can be build from a Rocker- or Rocker-derived image input as BUILD_FROM e.g. rocker/tidyverse:4.3.1
+  # Once built, the base image will be pushed to DOCKERHUB_USERNAME/BASE_NAME:FAASR_VERSION e.g. johndoe/base-tidyverse:1.2.0
+on: 
+  workflow_dispatch:
+    inputs:
+      # BUILD_FROM is the full user/name:tag of the Rocker (or Rocker-derived) image on DockerHub to build this base from
+      # Examples: rocker/tidyverse:4.3.1, rocker/geospatial:4.3.1, rqthomas/flare-rocker:4.3.1 
+      BUILD_FROM:
+        description: 'user/name:tag to build this base from'
+        required: true
+        default: 'rocker/tidyverse:4.3.1'
+      # BASE_NAME is the name to be used for this base FaaSr image
+      # Examples: base-tidyverse, base-geospatial, base-flare
+      BASE_NAME:
+        description: 'name to be used for this base FaaSr image'
+        required: true
+        default: 'base-tidyverse'
+      # FAASR_VERSION is the FaaSr version tag to be used for this base FaaSr image
+      # Examples: 1.2.0, 1.3.1
+      FAASR_VERSION:
+        description: 'FaaSr version'
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build base FaaSr Docker image
+        run: |
+          cd base
+          docker build -f base.Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.BASE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} --build-arg BUILD_FROM=${{ github.event.inputs.BUILD_FROM }} .
+      - name: Push base FaaSr Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.BASE_NAME }}:${{ github.event.inputs.FAASR_VERSION }}
