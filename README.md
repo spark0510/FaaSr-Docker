@@ -34,7 +34,8 @@ You need to create and configure a private ECR repository on AWS (TBD).
 * On the left panel, click 'Private Registry'-'Repositories'
 * On the main panel, clikc Repository name (e.g., aws-lambda-tidyverse)
 * On the left panel, click 'Permissions'
-* Click 'Edit policy JSON' on the right top and paste JSON configuration below - You should edit region and id (e.g., region: us-east-1, id= 797586564395)
+* Click 'Edit policy JSON' on the right top and paste JSON configuration below - You should edit region and id (e.g., region: us-east-1, id: 797586564395)
+
 ```
 {
   "Version": "2012-10-17",
