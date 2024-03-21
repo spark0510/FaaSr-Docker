@@ -28,13 +28,18 @@ You also need a token (TBD)
 
 You need to create and configure two secrets for GitHub Actions to push images to ECR on your behalf: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 
-You need to create and configure a private ECR repository on AWS (TBD).
-* Login to the AWS console
-* Search 'Elastic Container Registry' and Go to the service
-* On the left panel, click 'Private Registry'-'Repositories'
-* On the main panel, clikc Repository name (e.g., aws-lambda-tidyverse)
-* On the left panel, click 'Permissions'
-* Click 'Edit policy JSON' on the right top and paste JSON configuration below - You should edit region and id (e.g., region: us-east-1, id: 797586564395)
+You need to create a private ECR repository on AWS.
+* Login to the AWS console.
+* Search *Elastic Container Registry* and Go to the service.
+* On the left panel, click *Private Registry*-*Repositories*.
+* You can create the repository by clicking *Create repository* button on the top right.
+* You can create the image with the tag under the name of repository. (e.g., aws-lambda-tidyverse:new-image)
+* You can refer to the *View push commands* to create the image.
+
+You need to configure a private ECR repository to allow others to use your image.
+* On the main panel, click Repository name (e.g., aws-lambda-tidyverse).
+* On the left panel, click *Permissions*.
+* Click *Edit policy JSON* on the right top and paste JSON configuration below - You should edit region and id of JSON configuration. (e.g., region: us-east-1, id: 797586564395)
 
 ```
 {
