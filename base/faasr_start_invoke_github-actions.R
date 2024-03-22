@@ -7,42 +7,50 @@
 #' @param secrets should be stored in the github repository as secrets.
 #' @param JSON payload should be stored in the github repository and the path should be designated.
 
-library("httr")
-library("jsonlite")
-library("FaaSr")
-source("faasr_start_invoke_helper.R")
+faasr_start_invoke <- function(){
 
-# get arguments from environments
-secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
-token <- Sys.getenv("GITHUB_PAT")
-.faasr <- fromJSON(faasr_get_github_raw(token=token))
-.faasr$InvocationID <- Sys.getenv("INPUT_ID")
-.faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
-.faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
+    library("httr")
+    library("jsonlite")
+    library("FaaSr")
+    source("faasr_start_invoke_helper.R")
 
-# Replace secrets to faasr
-.faasr <- FaaSr::faasr_replace_values(.faasr, secrets)
+    # get arguments from environments
+    secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
+    token <- Sys.getenv("GITHUB_PAT")
+    .faasr <- fromJSON(faasr_get_github_raw(token=token))
+    .faasr$InvocationID <- Sys.getenv("INPUT_ID")
+    .faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
+    .faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
 
-# back to json format
-.faasr <- toJSON(.faasr, auto_unbox = TRUE)
+    # Replace secrets to faasr
+    .faasr <- FaaSr::faasr_replace_values(.faasr, secrets)
 
-# start FaaSr
-.faasr <- FaaSr::faasr_start(.faasr)
+    # back to json format
+    .faasr <- toJSON(.faasr, auto_unbox = TRUE)
 
-# Download the dependencies
-funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
-faasr_dependency_install(.faasr, funcname)
+    # start FaaSr
+    .faasr <- FaaSr::faasr_start(.faasr)
+    if (.faasr=="err-abort"){
+      return("")
+    }
 
-# Execute User function
-FaaSr::faasr_run_user_function(.faasr)
+    # Download the dependencies
+    funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
+    faasr_dependency_install(.faasr, funcname)
 
-# Trigger the next functions
-FaaSr::faasr_trigger(.faasr)
+    # Execute User function
+    FaaSr::faasr_run_user_function(.faasr)
 
-# Leave logs
-msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
-cat(msg_1)
-result <- faasr_log(msg_1)
-msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
-cat(msg_2)
-result <- faasr_log(msg_2)
+    # Trigger the next functions
+    FaaSr::faasr_trigger(.faasr)
+
+    # Leave logs
+    msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
+    cat(msg_1)
+    result <- faasr_log(msg_1)
+    msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
+    cat(msg_2)
+    result <- faasr_log(msg_2)
+}
+
+result <- faasr_start_invoke()

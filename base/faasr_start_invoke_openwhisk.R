@@ -7,31 +7,40 @@
 #'              this function. 
 #' @param JSON payload is passed as an input when the docker container starts.
 
-library("jsonlite")
-library("httr")
-library("FaaSr")
-source("faasr_start_invoke_helper.R")
 
-# get arguments from stdin
-.faasr <- commandArgs(TRUE)
+faasr_start_invoke <- function(){
 
-# start FaaSr
-.faasr <- FaaSr::faasr_start(.faasr)
+    library("jsonlite")
+    library("httr")
+    library("FaaSr")
+    source("faasr_start_invoke_helper.R")
 
-# Download the dependencies
-funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
-faasr_dependency_install(.faasr, funcname)
+    # get arguments from stdin
+    .faasr <- commandArgs(TRUE)
 
-# Execute User function
-FaaSr::faasr_run_user_function(.faasr)
+    # start FaaSr
+    .faasr <- FaaSr::faasr_start(.faasr)
+    if (.faasr=="err-abort"){
+        return("")
+    }
 
-# Trigger the next functions
-FaaSr::faasr_trigger(.faasr)
+    # Download the dependencies
+    funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
+    faasr_dependency_install(.faasr, funcname)
 
-# Leave logs
-msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
-cat(msg_1)
-result <- faasr_log(msg_1)
-msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
-cat(msg_2)
-result <- faasr_log(msg_2)
+    # Execute User function
+    FaaSr::faasr_run_user_function(.faasr)
+
+    # Trigger the next functions
+    FaaSr::faasr_trigger(.faasr)
+
+    # Leave logs
+    msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
+    cat(msg_1)
+    result <- faasr_log(msg_1)
+    msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
+    cat(msg_2)
+    result <- faasr_log(msg_2)
+}
+
+result <- faasr_start_invoke()

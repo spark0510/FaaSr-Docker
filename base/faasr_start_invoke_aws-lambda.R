@@ -7,35 +7,43 @@
 #'              this function. 
 #' @param JSON payload is passed as an input when the docker container starts.
 
-library("jsonlite")
-library("httr")
-library("FaaSr")
-source("faasr_start_invoke_helper.R")
+faasr_start_invoke <- function(){
 
-# get arguments from stdin
-.faasr <- commandArgs(TRUE)
+    library("jsonlite")
+    library("httr")
+    library("FaaSr")
+    source("faasr_start_invoke_helper.R")
 
-# start FaaSr
-.faasr <- FaaSr::faasr_start(.faasr)
+    # get arguments from stdin
+    .faasr <- commandArgs(TRUE)
 
-# set a new library path "/tmp": Lambda specific
-.libPaths( c(.libPaths(), "/tmp") )
-new_lib <- "/tmp"
+    # start FaaSr
+    .faasr <- FaaSr::faasr_start(.faasr)
+    if (.faasr=="err-abort"){
+        return("")
+    }
+    
+    # set a new library path "/tmp": Lambda specific
+    .libPaths( c(.libPaths(), "/tmp") )
+    new_lib <- "/tmp"
 
-# Download the dependencies
-funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
-faasr_dependency_install(.faasr, funcname, new_lib=new_lib)
+    # Download the dependencies
+    funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
+    faasr_dependency_install(.faasr, funcname, new_lib=new_lib)
 
-# Execute User function
-FaaSr::faasr_run_user_function(.faasr)
+    # Execute User function
+    FaaSr::faasr_run_user_function(.faasr)
 
-# Trigger the next functions
-FaaSr::faasr_trigger(.faasr)
+    # Trigger the next functions
+    FaaSr::faasr_trigger(.faasr)
 
-# Leave logs
-msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
-cat(msg_1)
-result <- faasr_log(msg_1)
-msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
-cat(msg_2)
-result <- faasr_log(msg_2)
+    # Leave logs
+    msg_1 <- paste0('{\"faasr\":\"Finished execution of User Function ',.faasr$FunctionInvoke,'\"}', "\n")
+    cat(msg_1)
+    result <- faasr_log(msg_1)
+    msg_2 <- paste0('{\"faasr\":\"With Action Invocation ID is ',.faasr$InvocationID,'\"}', "\n")
+    cat(msg_2)
+    result <- faasr_log(msg_2)
+}
+
+result <- faasr_start_invoke()
