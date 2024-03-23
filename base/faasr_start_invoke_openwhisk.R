@@ -20,7 +20,7 @@ faasr_start_invoke <- function(){
 
     # start FaaSr
     .faasr <- FaaSr::faasr_start(.faasr)
-    if (.faasr=="err-abort"){
+    if (.faasr[1]=="err-abort"){
         return("")
     }
 
