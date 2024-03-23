@@ -17,6 +17,9 @@ source("faasr_start_invoke_helper.R")
 
 # start FaaSr
 .faasr <- FaaSr::faasr_start(.faasr)
+if (.faasr[1]=="err-abort"){
+  q("no")
+}
 
 # set a new library path "/tmp": Lambda specific
 .libPaths( c(.libPaths(), "/tmp") )

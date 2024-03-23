@@ -28,6 +28,9 @@ token <- Sys.getenv("GITHUB_PAT")
 
 # start FaaSr
 .faasr <- FaaSr::faasr_start(.faasr)
+if (.faasr[1]=="err-abort"){
+  q("no")
+}
 
 # Download the dependencies
 funcname <- .faasr$FunctionList[[.faasr$FunctionInvoke]]$FunctionName
