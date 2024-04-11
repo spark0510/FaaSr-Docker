@@ -11,7 +11,7 @@ ARG FAASR_INSTALL_REPO
 RUN rm /action/FaaSr.schema.json
 ADD https://raw.githubusercontent.com/spark0510/FaaSr-package/branch66/schema/FaaSr.schema.json /action/
 
-RUN Rscript -e "remove.packages('FLAREr')
+RUN Rscript -e "remove.packages('FLAREr')"
 RUN Rscript -e "devtools::install_github('spark0510/FLAREr')"
 
 
