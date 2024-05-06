@@ -1,6 +1,6 @@
 python3=3.10.6-1~22.04
 python3-pip=22.0.2+dfsg-1ubuntu0.4
-curl=7.81.0-1ubuntu1.15
+curl=7.81.0-1ubuntu1.16
 unzip=6.0-26ubuntu3.2
 g++=4:11.2.0-1ubuntu1
 make=4.3-4.1build1
