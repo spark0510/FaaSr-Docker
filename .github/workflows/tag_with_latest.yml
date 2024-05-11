@@ -66,11 +66,11 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.OPENWHISK_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
       - name: Pull github-actions GHCR image
         run: |
-          docker pull ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} 
+          docker pull ghcr.io/${{ github.event.inputs.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} 
       - name: Tag and push hithub-actions GHCR image
         run: |
-          docker tag ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
-          docker push ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+          docker tag ghcr.io/${{ github.event.inputs.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} ghcr.io/${{ env.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
+          docker push ghcr.io/${{ github.event.inputs.GHCR_IO_REPO }}/${{ env.GITHUB_ACTIONS_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:latest
       - name: Pull aws-lambda AWS ECR image
         run: |
           docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_LAMBDA_PREFIX }}-${{ github.event.inputs.IMAGE_NAME }}:${{ github.event.inputs.FAASR_VERSION }} 
