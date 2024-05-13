@@ -1,0 +1,51 @@
+name: local-test -> DockerHub
+
+on: 
+  workflow_dispatch:
+    inputs:
+      # BASE_IMAGE is the full user/name:tag of the base FaaSr image (stored in DockerHub) to build from 
+      # Examples: janedoe/base-tidyverse:1.1.2, faasr/base-tidyverse:1.1.3
+      BASE_IMAGE:
+        description: 'user/name:tag of the base FaaSr image e.g. janedoe/base-tidyverse:1.1.2'
+        required: true
+        default: 'faasr/base-tidyverse:1.1.2'
+      # TARGET_NAME is the name of the FaaS-specific image to build
+      # Examples: github-actions-tidyverse
+      TARGET_NAME:
+        description: 'name of the FaaS-specific image to build'
+        required: true
+        default: 'local-test'
+      # FAASR_VERSION is the FaaSr version tag to be used for this base FaaSr image
+      # Examples: 1.1.2, 1.3.1
+      FAASR_VERSION:
+        description: 'FaaSr version'
+        required: true 
+      # FAASR_INSTALL_REPO is the GitHub repo to install FaaSr from
+      # Examples: janedoe/FaaSr-Package-dev, faasr/FaaSr-Package
+      FAASR_INSTALL_REPO:
+        description: 'GitHub repo to install FaaSr from'
+        required: true
+        default: 'faasr/FaaSr-Package'
+
+permissions: write-all
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Local-test image
+        run: |
+          cd faas_specific
+          docker build -f local-test.Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.TARGET_NAME }}:${{ github.event.inputs.FAASR_VERSION }} --build-arg BASE_IMAGE=${{ github.event.inputs.BASE_IMAGE }} --build-arg FAASR_VERSION=${{ github.event.inputs.FAASR_VERSION }} --build-arg FAASR_INSTALL_REPO=${{ github.event.inputs.FAASR_INSTALL_REPO }} .
+      - name: Push Local-test image to DockerHub
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.TARGET_NAME }}:${{ github.event.inputs.FAASR_VERSION }}
