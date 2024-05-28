@@ -8,6 +8,7 @@ ARG FAASR_VERSION
 # FAASR_INSTALL_REPO is tha name of the user's GitHub repository to install FaaSr from e.g. janedoe/FaaSr-Package-dev
 ARG FAASR_INSTALL_REPO
 
+COPY test.R /action/
 
 # Install FaaSr from specified repo and tag
 RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); install_github(paste0(args[1],'@',args[2]),force=TRUE)" $FAASR_INSTALL_REPO $FAASR_VERSION
@@ -15,4 +16,4 @@ RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); insta
 # GitHub Actions specifics
 WORKDIR /action
 
-CMD ["Rscript", "faasr_start_invoke_github-actions.R"]
+CMD ["Rscript", "test.R"]
