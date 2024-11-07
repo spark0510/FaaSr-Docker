@@ -16,10 +16,6 @@ source("faasr_start_invoke_helper.R")
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 token <- Sys.getenv("GITHUB_PAT")
 .faasr <- fromJSON(Sys.getenv("PAYLOAD"))
-#.faasr <- fromJSON(faasr_get_github_raw(token=token))
-#.faasr$InvocationID <- Sys.getenv("INPUT_ID")
-#.faasr$FunctionInvoke <- Sys.getenv("INPUT_INVOKENAME")
-#.faasr$FaaSrLog <- Sys.getenv("INPUT_FAASRLOG")
 
 # Replace secrets to faasr
 .faasr <- FaaSr::faasr_replace_values(.faasr, secrets)
