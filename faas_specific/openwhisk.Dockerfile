@@ -8,9 +8,6 @@ ARG FAASR_VERSION
 # FAASR_INSTALL_REPO is tha name of the user's GitHub repository to install FaaSr from e.g. janedoe/FaaSr-Package-dev
 ARG FAASR_INSTALL_REPO
 
-RUN rm /action/FaaSr.schema.json
-ADD https://raw.githubusercontent.com/spark0510/FaaSr-package/branch74-issue89/schema/FaaSr.schema.json /action/
-
 # Install FaaSr from specified repo and tag
 RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); install_github(paste0(args[1],'@',args[2]),force=TRUE)" $FAASR_INSTALL_REPO $FAASR_VERSION
 
