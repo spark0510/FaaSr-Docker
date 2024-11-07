@@ -12,7 +12,8 @@ RUN rm /action/FaaSr.schema.json
 ADD https://raw.githubusercontent.com/spark0510/FaaSr-package/branch74-issue89/schema/FaaSr.schema.json /action/
 
 RUN rm /action/faasr_start_invoke_github-actions.R
-ADD https://raw.githubusercontent.com/spark0510/FaaSr-Docker/refs/heads/github/base/faasr_start_invoke_github-actions.R /action/
+ADD https://raw.githubusercontent.com/spark0510/FaaSr-Docker/refs/heads/main/base/faasr_start_invoke_github-actions.R /action/
+
 
 # Install FaaSr from specified repo and tag
 RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); install_github(paste0(args[1],'@',args[2]),force=TRUE)" $FAASR_INSTALL_REPO $FAASR_VERSION
