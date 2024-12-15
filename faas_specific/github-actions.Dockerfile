@@ -9,7 +9,7 @@ ARG FAASR_VERSION
 ARG FAASR_INSTALL_REPO
 
 RUN rm /action/faasr_start_invoke_github-actions.R
-ADD https://github.com/spark0510/FaaSr-Docker/blob/main/base/faasr_start_invoke_github-actions.R /action/
+ADD https://raw.githubusercontent.com/spark0510/FaaSr-Docker/refs/heads/main/base/faasr_start_invoke_github-actions.R /action/
 
 # Install FaaSr from specified repo and tag
 RUN Rscript -e "args <- commandArgs(trailingOnly=TRUE); library(devtools); install_github(paste0(args[1],'@',args[2]),force=TRUE)" $FAASR_INSTALL_REPO $FAASR_VERSION
