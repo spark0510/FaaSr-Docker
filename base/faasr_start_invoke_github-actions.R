@@ -15,6 +15,8 @@ source("faasr_start_invoke_helper.R")
 # get arguments from environments
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 token <- Sys.getenv("GITHUB_PAT")
+a <- Sys.getenv("PAYLOAD")
+print(a)
 .faasr <- fromJSON(Sys.getenv("PAYLOAD"))
 
 # Replace secrets to faasr
