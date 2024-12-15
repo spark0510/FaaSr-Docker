@@ -15,9 +15,10 @@ source("faasr_start_invoke_helper.R")
 # get arguments from environments
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 token <- Sys.getenv("GITHUB_PAT")
-a <- Sys.getenv("PAYLOAD")
-print(a)
 .faasr <- fromJSON(Sys.getenv("PAYLOAD"))
+if (.faasr == ""){
+  .faasr <- fromJSON(faasr_get_github_raw(token=token))
+}
 
 # Replace secrets to faasr
 .faasr <- FaaSr::faasr_replace_values(.faasr, secrets)
