@@ -16,7 +16,9 @@ source("faasr_start_invoke_helper.R")
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
 token <- Sys.getenv("GITHUB_PAT")
 .faasr <- Sys.getenv("PAYLOAD")
-
+print("test")
+print(.faasr)
+print("test end")
 if (.faasr == ""){
   .faasr <- fromJSON(faasr_get_github_raw(token=token))
 } else {
