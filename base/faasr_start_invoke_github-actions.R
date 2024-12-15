@@ -10,11 +10,14 @@
 library("httr")
 library("jsonlite")
 library("FaaSr")
+print("here0")
 source("faasr_start_invoke_helper.R")
-
+print("here1")
 # get arguments from environments
 secrets <- fromJSON(Sys.getenv("SECRET_PAYLOAD"))
+print("here2")
 token <- Sys.getenv("GITHUB_PAT")
+print("here3")
 .faasr <- Sys.getenv("PAYLOAD")
 print("test")
 print(.faasr)
